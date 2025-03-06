@@ -10,17 +10,12 @@ env:
 
 jobs:
   build:
-    name: "Build & Test"
+    name: "Build & Publish Nugets"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
-
-      - name: Pull & Update Submodules
-        run: |
-          git submodule update --init --recursive
-          git submodule update --recursive --remote
 
       - name: Setup .NET 9.0
         uses: actions/setup-dotnet@v2
@@ -30,8 +25,8 @@ jobs:
       - name: .Net Build - Api Project
         run: dotnet build --configuration Release ${{ env.TwitchApiProject }}
     
-      - name: .Net Build - Client Project
-        run: dotnet build --configuration Release ${{ env.TwitchClientProject }}
+#      - name: .Net Build - Client Project
+#        run: dotnet build --configuration Release ${{ env.TwitchClientProject }}
 
       - name: .Net Build - PubSub Project
         run: dotnet build --configuration Release ${{ env.TwitchPubSubProject }}
@@ -42,8 +37,8 @@ jobs:
       - name: .Net Pack - Api Project
         run: dotnet pack --configuration Release /p:Version=${{ env.BuildVersion }} --no-build ${{ env.TwitchApiProject }}
 
-      - name: .Net Pack - Client Project
-        run: dotnet pack --configuration Release /p:Version=${{ env.BuildVersion }} --no-build ${{ env.TwitchClientProject }}
+#      - name: .Net Pack - Client Project
+#        run: dotnet pack --configuration Release /p:Version=${{ env.BuildVersion }} --no-build ${{ env.TwitchClientProject }}
 
       - name: .Net Pack - PubSub Project
         run: dotnet pack --configuration Release /p:Version=${{ env.BuildVersion }} --no-build ${{ env.TwitchPubSubProject }}
