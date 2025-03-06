@@ -1,0 +1,55 @@
+name: Build And Test
+on: [push]
+
+env:
+  BuildVersion: '3.8.${{github.run_number}}'
+  TwitchApiProject: 'TwitchLib.Api/TwitchLib.Api/TwitchLib.Api.csproj'
+  TwitchClientProject: 'TwitchLib.Client/TwitchLib.Client/TwitchLib.Client.csproj'
+  TwitchPubSubProject: 'TwitchLib.PubSub/TwitchLib.PubSub/TwitchLib.PubSub.csproj'
+  TwitchEventSubWebSocketProject: 'TwitchLib.EventSub.Websockets/TwitchLib.EventSub.Websockets/TwitchLib.EventSub.Websockets.csproj'
+
+jobs:
+  build:
+    name: "Build & Test"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET 9.0
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 9.0.x
+
+      - name: .Net Build - Api Project
+        run: dotnet build --configuration Release ${{ env.TwitchApiProject }}
+    
+      - name: .Net Build - Client Project
+        run: dotnet build --configuration Release ${{ env.TwitchClientProject }}
+
+      - name: .Net Build - PubSub Project
+        run: dotnet build --configuration Release ${{ env.TwitchPubSubProject }}
+
+      - name: .Net Build - EventSub/Websocket Project
+        run: dotnet build --configuration Release ${{ env.TwitchEventSubWebSocketProject }}
+
+      - name: .Net Pack - Api Project
+        run: dotnet pack --configuration Release /p:Version=${{ env.BuildVersion }} --no-build ${{ env.TwitchApiProject }}
+
+      - name: .Net Pack - Client Project
+        run: dotnet pack --configuration Release /p:Version=${{ env.BuildVersion }} --no-build ${{ env.TwitchClientProject }}
+
+      - name: .Net Pack - PubSub Project
+        run: dotnet pack --configuration Release /p:Version=${{ env.BuildVersion }} --no-build ${{ env.TwitchPubSubProject }}
+
+      - name: .Net Pack - EventSub/Websocket Project
+        run: dotnet pack --configuration Release /p:Version=${{ env.BuildVersion }} --no-build ${{ env.TwitchEventSubWebSocketProject }}
+
+      - name: Publish Nuget Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Libraries
+          path: "**/*.nupkg"
+       
+      - name: Publish To Nuget
+        if: startsWith(github.event.ref, 'refs/tags/')
+        run: dotnet nuget push "**/*.nupkg" -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
